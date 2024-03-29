@@ -21,6 +21,14 @@ class MainActivity : AppCompatActivity() {
             addFragment(CreateAccountFragment())
             addFragment(LoginAccountFragment())
         }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        setLocationButton = findViewById(R.id.setLocationButton)
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
+        setLocationButton.setOnClickListener {
+        }
         viewPager2.adapter = pagerAdapter
 
         TabLayoutMediator(tabLayout,viewPager2){ tab, position ->
@@ -35,5 +43,23 @@ class MainActivity : AppCompatActivity() {
 
         }.attach()
 
+        override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                val currentLatLng = LatLng(location.latitude, location.longitude)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+            }
+        }
     }
 }
